@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Azure.Storage.Queues;
+@using Azure.Storage.Queues.Models;
 
 <PageTitle>Index</PageTitle>
 
@@ -6,8 +8,59 @@
 
 Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<ul>
+    @foreach (var f in filenames)
+    {
+        <li>@f</li>
+    }
+</ul>
+
+<button class="btn btn-primary" @onclick="AddToQueue">Add to Queue</button>
+<button class="btn btn-primary" @onclick="LoadQueue">Load Queue</button>
+
+<p>
+    Id: @msg?.MessageId <br />
+    Body: @msg?.Body <br />
+</p>
 
 
+@code {
 
+    QueueMessage msg = null;
+    void LoadQueue()
+    {
+        var client = new QueueClient(conString, "myqueue");
+        msg = client.ReceiveMessage();
+        client.DeleteMessage(msg.MessageId, msg.PopReceipt);
+    }
+
+    void AddToQueue()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            var client = new QueueClient(conString, "myqueue");
+            var msg = $"[{i}] Hallo Welt, es ist {DateTime.Now:G} Uhr";
+            client.SendMessage(msg);
+        }
+    }
+
+    List<string> filenames = new List<string>();
+
+    string conString = "DefaultEndpointsProtocol=https;AccountName=andresnewstorage;AccountKey=n/C9diomcvUy4/FRf/maxJ/in5b7umW+Rlhoap1zyRqtkWVsev3cVpzxO1uJhlUC+CJU3ygynICc+AStbCKtgw==;EndpointSuffix=core.windows.net";
+
+    protected override Task OnInitializedAsync()
+    {
+        var blobClient = new Azure.Storage.Blobs.BlobServiceClient(conString);
+
+        var blobs = blobClient.GetBlobContainerClient("myfiles").GetBlobs();
+        foreach (var b in blobs)
+        {
+            filenames.Add(b.Name);
+        }
+
+
+        return base.OnInitializedAsync();
+    }
+
+}
 
