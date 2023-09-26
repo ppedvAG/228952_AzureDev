@@ -1,5 +1,7 @@
 ﻿@page "/counter"
 
+@inject ILogger<Counter> log;
+
 <PageTitle>Counter</PageTitle>
 
 <h1>Counter</h1>
@@ -8,11 +10,20 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+<button class="btn btn-primary" @onclick="CreateEx">FEHLER</button>
+
 @code {
     private int currentCount = 0;
 
     private void IncrementCount()
     {
+        log.LogInformation($"Counter ist now {currentCount}");
         currentCount++;
+    }
+
+    private void CreateEx()
+    {
+        log.LogError(message: "AAAA", exception: new OutOfMemoryException());
+
     }
 }
