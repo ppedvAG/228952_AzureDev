@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Azure.Identity;
+@using Azure.Security.KeyVault.Secrets;
 @using Azure.Storage.Queues;
 @using Azure.Storage.Queues.Models;
 
@@ -7,6 +9,8 @@
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<h4>@conString</h4>
 
 <ul>
     @foreach (var f in filenames)
@@ -46,17 +50,27 @@ Welcome to your new app.
 
     List<string> filenames = new List<string>();
 
-    string conString = "DefaultEndpointsProtocol=https;AccountName=andresnewstorage;AccountKey=n/C9diomcvUy4/FRf/maxJ/in5b7umW+Rlhoap1zyRqtkWVsev3cVpzxO1uJhlUC+CJU3ygynICc+AStbCKtgw==;EndpointSuffix=core.windows.net";
+    string conString = "";
 
     protected override Task OnInitializedAsync()
     {
-        var blobClient = new Azure.Storage.Blobs.BlobServiceClient(conString);
 
-        var blobs = blobClient.GetBlobContainerClient("myfiles").GetBlobs();
-        foreach (var b in blobs)
-        {
-            filenames.Add(b.Name);
-        }
+        var TenantId = "f290c3d7-ae7e-40aa-8b37-2b9bd0d0d5b9";
+        var ClientId = "fdca56ae-8a3e-465f-836c-7cb9a009bc48";
+        // var ident = new ClientSecretCredential(TenantId, ClientId, "VXt8Q~F~a.MFaeG_BFErFmz8VjCgb8CObnzICa-G");
+        var ident = new DefaultAzureCredential();
+        var secretClient = new SecretClient(new Uri("https://mykeyvaultandre.vault.azure.net/"), ident);
+
+        conString = secretClient.GetSecret("StorageConString").Value.Value;
+
+
+        // var blobClient = new Azure.Storage.Blobs.BlobServiceClient(conString);
+
+        // var blobs = blobClient.GetBlobContainerClient("myfiles").GetBlobs();
+        // foreach (var b in blobs)
+        // {
+        //     filenames.Add(b.Name);
+        // }
 
 
         return base.OnInitializedAsync();
